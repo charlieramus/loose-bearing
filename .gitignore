@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Generated graph artifact (built offline by the build/ pipeline in V2)
+public/graph/
+
+# Staged build docs — local only, NEVER pushed (the code ships, the plans do not)
+UPDATELOG*
