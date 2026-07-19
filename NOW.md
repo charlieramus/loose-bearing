@@ -6,12 +6,18 @@ The orientation doc. Every later updatelog reads this first. Keep it current.
 
 | Area         | State       | Log |
 | ------------ | ----------- | --- |
-| Geo core     | in progress | V1  |
+| Geo core     | done        | V1  |
 | OSM pipeline | not started | V2  |
 | Router       | not started | V3  |
 | Map UI       | not started | V4  |
 | The Reveal   | not started | V5  |
 | Gallery/ship | not started | V6  |
+
+**Geo core (V1):** tested, single-source-of-truth geometry — `src/geo/geo.ts` (haversine
+distance, `atan2` initial bearing, `angularDiffDeg`) and the one `isBearingLegal` predicate
+in `src/geo/bearingRule.ts` (90° inclusive, epsilon-stable). Graph model (`src/graph/types.ts`)
+plus three hand-built fixtures (grid / trap / disconnected) that V2–V3 test against. 32 tests
+green; no duplicated angle/distance math.
 
 ## Direction (locked in CEO review — do not relitigate)
 
