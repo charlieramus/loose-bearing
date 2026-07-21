@@ -7,7 +7,7 @@ The orientation doc. Every later updatelog reads this first. Keep it current.
 | Area         | State       | Log |
 | ------------ | ----------- | --- |
 | Geo core     | done        | V1  |
-| OSM pipeline | not started | V2  |
+| OSM pipeline | functional  | V2  |
 | Router       | not started | V3  |
 | Map UI       | not started | V4  |
 | The Reveal   | not started | V5  |
@@ -18,6 +18,16 @@ distance, `atan2` initial bearing, `angularDiffDeg`) and the one `isBearingLegal
 in `src/geo/bearingRule.ts` (90° inclusive, epsilon-stable). Graph model (`src/graph/types.ts`)
 plus three hand-built fixtures (grid / trap / disconnected) that V2–V3 test against. 32 tests
 green; no duplicated angle/distance math.
+
+**OSM pipeline (V2):** offline `build/` scripts (01→06, reproducible; `build/README.md`) turn a
+checksum-pinned Geofabrik Colorado extract into a directed Front Range street graph. Result:
+`public/graph/frontrange.graph.json` — **1,426,625 nodes / 3,631,737 edges**, edges carry
+precomputed bearing + length; snapping grid rebuilt at load (`build/spatial.ts`), artifact schema
++ loader in `build/serialize.ts` (V4 imports it). Size **99.9 MB raw / 31.1 MB gzipped → load
+CLIENT-SIDE, zero backend** (V4 need not re-measure). Validation clean: one dominant weakly-
+connected component (97.4%), 0.04% dead sinks, grid-shaped bearing histogram. Both `build/data/`
+and `public/graph/` are gitignored — regenerate via `build/` run order. Deferred to later logs:
+the search itself (V3) and loading the artifact into a running app (V4).
 
 ## Direction (locked in CEO review — do not relitigate)
 
