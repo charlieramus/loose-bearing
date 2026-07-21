@@ -166,7 +166,31 @@ body {
 .lb-inputs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+.lb-fieldrow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lb-fieldstatus {
+  min-height: 12px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  padding-left: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lb-fieldstatus[data-state="ok"] {
+  color: var(--signal);
+}
+.lb-fieldstatus[data-state="fault"] {
+  color: var(--fault);
+}
+.lb-fieldstatus[data-state="busy"] {
+  color: var(--ink-dim);
 }
 .lb-field {
   display: flex;
@@ -403,6 +427,83 @@ body {
 }
 .lb-map .maplibregl-ctrl-attrib a {
   color: var(--ink-dim);
+}
+
+/* ---- Screen overlay (loading / GraphLoadError) ---- */
+.lb-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--map-ground) 82%, transparent);
+  backdrop-filter: blur(1.5px);
+}
+.lb-overlay-panel {
+  min-width: 220px;
+  max-width: 80%;
+  padding: 20px 22px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.lb-overlay[data-kind="fault"] .lb-overlay-panel {
+  border-color: var(--fault);
+}
+.lb-overlay-title {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+}
+.lb-overlay[data-kind="fault"] .lb-overlay-title {
+  color: var(--fault);
+}
+.lb-overlay-detail {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.lb-overlay-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.lb-overlay-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink-dim);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.lb-overlay-btn:hover {
+  border-color: var(--signal);
+  color: var(--signal);
+}
+.lb-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--hairline-strong);
+  border-top-color: var(--signal);
+  border-radius: 50%;
+  animation: lb-spin 0.7s linear infinite;
+}
+@keyframes lb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb-spinner {
+    animation-duration: 2s;
+  }
 }
 
 /* Responsive: stack the control column above the screen on narrow viewports */

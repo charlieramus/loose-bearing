@@ -12,8 +12,11 @@ export type ShellRefs = {
   replayButton: HTMLButtonElement;
   inputA: HTMLInputElement;
   inputB: HTMLInputElement;
+  statusA: HTMLElement;
+  statusB: HTMLElement;
   routeList: HTMLOListElement;
   readoutPanel: HTMLElement;
+  screen: HTMLElement;
   mapContainer: HTMLElement;
   compass: HTMLElement;
   bearingReadout: HTMLElement;
@@ -67,19 +70,28 @@ export function buildShell(mount: HTMLElement): ShellRefs {
   const control = el("aside", "lb-control");
 
   const inputs = el("div", "lb-inputs");
+
+  const rowA = el("div", "lb-fieldrow");
   const fieldA = el("label", "lb-field");
   const inputA = el("input", "lb-input");
   inputA.type = "text";
   inputA.placeholder = "ORIGIN";
   inputA.autocomplete = "off";
   fieldA.append(el("span", "lb-tick", "A"), inputA);
+  const statusA = el("div", "lb-fieldstatus");
+  rowA.append(fieldA, statusA);
+
+  const rowB = el("div", "lb-fieldrow");
   const fieldB = el("label", "lb-field");
   const inputB = el("input", "lb-input");
   inputB.type = "text";
   inputB.placeholder = "DESTINATION";
   inputB.autocomplete = "off";
   fieldB.append(el("span", "lb-tick", "B"), inputB);
-  inputs.append(fieldA, fieldB);
+  const statusB = el("div", "lb-fieldstatus");
+  rowB.append(fieldB, statusB);
+
+  inputs.append(rowA, rowB);
 
   const routeList = el("ol", "lb-routelist");
 
@@ -120,8 +132,11 @@ export function buildShell(mount: HTMLElement): ShellRefs {
     replayButton,
     inputA,
     inputB,
+    statusA,
+    statusB,
     routeList,
     readoutPanel,
+    screen,
     mapContainer,
     compass,
     bearingReadout,
