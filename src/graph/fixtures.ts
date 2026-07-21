@@ -125,3 +125,37 @@ export const disconnectedGraph: Graph = buildGraph(
     [2, 3], // component two — no link to component one
   ]),
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// detourGraph — the bearing rule BINDS here, forcing a longer legal route. The cheap
+// unconstrained path S→W→D takes a westward first hop (away from the eastern DEST — illegal
+// under the 90° rule), so the constrained router must instead take the longer legal detour
+// S→N→D. This is the fixture with a KNOWN detour factor (Stage 5): the ratio of the N-route
+// length to the W-route length (~1.43 with these coordinates).
+//
+//            N (3)   ← north-east of S, legal first step
+//           /   \
+//   W (2)--S(0)  \--→ D (1)   ← DEST due east of S
+//    (west, illegal first step)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const DETOUR_START = 0;
+export const DETOUR_DEST = 1;
+
+const detourNodes: Node[] = [
+  { id: 0, lat: 40.0, lng: -105.0 }, // S — start
+  { id: 1, lat: 40.0, lng: -104.9 }, // D — destination, due east of S
+  { id: 2, lat: 40.0, lng: -105.01 }, // W — west of S; cheap unconstrained hop but illegal
+  { id: 3, lat: 40.05, lng: -104.98 }, // N — north-east of S; legal but longer detour
+];
+
+// Directed: the short route S→W→D and the legal detour S→N→D. S→W is illegal toward the
+// eastern DEST, so the constrained search is pushed onto S→N→D.
+const detourDirected: Array<[number, number]> = [
+  [0, 2], // S → W  (bearing ≈ 270°, illegal toward east)
+  [2, 1], // W → D
+  [0, 3], // S → N  (bearing ≈ 17°, legal)
+  [3, 1], // N → D
+];
+
+export const detourGraph: Graph = buildGraph(detourNodes, detourDirected);

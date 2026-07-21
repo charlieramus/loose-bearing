@@ -36,6 +36,12 @@ export type Success = {
   kind: "success";
   path: number[];
   lengthMeters: number;
+  /**
+   * How much longer the constrained route is than the ordinary shortest path:
+   * `constrainedLength / unconstrainedLength`. 1.0 means the rule did not bind; larger
+   * means the bearing rule forced a detour. Exactly 1.0 for a trivial (start === end) route.
+   */
+  detourFactor: number;
   exploration: Exploration;
 };
 
@@ -66,8 +72,10 @@ export function route(graph: Graph, startId: number, endId: number): RouteResult
   if (!hasNode(graph, endId)) return { kind: "failure", reason: "DestinationOffNetwork" };
 
   // An ordinary (rule-free) path must exist first; if not, this is plain disconnection,
-  // NOT the bearing feature.
-  if (shortestPath(graph, startId, endId) === null) {
+  // NOT the bearing feature. We keep its length for an honest detour ratio (same graph,
+  // same endpoints, shortest-constrained ÷ shortest-unconstrained).
+  const unconstrained = shortestPath(graph, startId, endId);
+  if (unconstrained === null) {
     return { kind: "failure", reason: "Disconnected" };
   }
 
@@ -77,10 +85,18 @@ export function route(graph: Graph, startId: number, endId: number): RouteResult
     return { kind: "failure", reason: "NoBearingLegalPath", exploration };
   }
 
+  // Detour factor = constrained ÷ unconstrained length. When the unconstrained path is
+  // ~0 (origin == dest) the ratio is undefined, so report 1.0 (no detour).
+  const detourFactor =
+    unconstrained.lengthMeters < 1e-9
+      ? 1
+      : result.lengthMeters / unconstrained.lengthMeters;
+
   return {
     kind: "success",
     path: result.path,
     lengthMeters: result.lengthMeters,
+    detourFactor,
     exploration,
   };
 }
