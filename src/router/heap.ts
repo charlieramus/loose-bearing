@@ -13,6 +13,12 @@ export class BinaryHeap<T> {
     return this.items.length;
   }
 
+  /** A shallow copy of the items still in the heap (unordered) — used to snapshot the
+   *  frontier at search termination without disturbing the queue. */
+  snapshot(): T[] {
+    return this.items.slice();
+  }
+
   push(item: T): void {
     const items = this.items;
     items.push(item);
