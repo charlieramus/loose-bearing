@@ -1,0 +1,421 @@
+/* Loose Bearing — instrument shell styling (V4).
+   Reference: the locked Loose Bearing mockup. Teenage-Engineering instrument language:
+   concrete-grey/ink body, monospace readouts, a light large-grotesque hero figure, hairline
+   grid + corner registration marks + ruler ticks, ONE green signal color (red = fault only),
+   light + dark. No floating cards, no gradients, no AI slop. Later stages fill the regions;
+   these are the tokens + the shell chrome. */
+
+:root {
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+  --font-grotesque: "Geist", "Helvetica Neue", "Inter", system-ui, sans-serif;
+}
+
+/* ---- Theme tokens ---- */
+.lb-app[data-theme="light"] {
+  --ground: #f3f3f5; /* cool concrete console ground */
+  --panel: #fbfbfc;
+  --ink: #17181b;
+  --ink-dim: #6a6c73;
+  --ink-faint: #9a9ca3;
+  --hairline: #d9dade;
+  --hairline-strong: #c4c5cb;
+  --signal: #16a34a; /* the one green */
+  --fault: #dc2626; /* red — fault only */
+  --map-ground: #f3f3f5;
+}
+.lb-app[data-theme="dark"] {
+  --ground: #101013;
+  --panel: #16171b;
+  --ink: #e9eaee;
+  --ink-dim: #8d8f98;
+  --ink-faint: #5b5d66;
+  --hairline: #26272d;
+  --hairline-strong: #33353c;
+  --signal: #34d399;
+  --fault: #f0595d;
+  --map-ground: #131316;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+}
+
+.lb-app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ---- Header ---- */
+.lb-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 46px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.lb-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+.lb-wordmark-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--signal);
+  border-radius: 50%;
+}
+
+.lb-header-readouts {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: 8px;
+}
+.lb-readout {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim);
+  padding: 2px 7px;
+  border: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+.lb-readout-dim {
+  color: var(--ink-faint);
+}
+.lb-readout-status {
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+.lb-readout-status[data-fault="true"] {
+  color: var(--fault);
+  border-color: var(--fault);
+}
+
+.lb-header-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.lb-sqbtn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--hairline-strong);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+.lb-sqbtn:hover:not(:disabled) {
+  border-color: var(--ink-dim);
+}
+.lb-sqbtn:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+/* ---- Body split ---- */
+.lb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+/* ---- Control column ---- */
+.lb-control {
+  flex: 0 0 320px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-right: 1px solid var(--hairline);
+  background: var(--panel);
+  overflow-y: auto;
+}
+
+.lb-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lb-field {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--hairline-strong);
+}
+.lb-tick {
+  flex: 0 0 30px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ground);
+  background: var(--ink);
+}
+.lb-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 10px 10px;
+  outline: none;
+}
+.lb-input::placeholder {
+  color: var(--ink-faint);
+  letter-spacing: 0.14em;
+}
+.lb-field:focus-within {
+  border-color: var(--signal);
+}
+
+/* Numbered route list (filled Stage 5/6) */
+.lb-routelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--hairline);
+  min-height: 40px;
+}
+.lb-routelist:empty::after {
+  content: "NO ROUTE";
+  display: block;
+  padding: 12px 2px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+.lb-routestep {
+  display: flex;
+  gap: 10px;
+  padding: 6px 2px;
+  font-size: 11px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-dim);
+}
+.lb-routestep-idx {
+  color: var(--ink-faint);
+  min-width: 22px;
+}
+
+/* Readout panel region (filled Stage 6) */
+.lb-readoutpanel {
+  margin-top: auto;
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+  min-height: 120px;
+}
+.lb-readoutpanel:empty::after {
+  content: "AWAITING QUERY";
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+
+/* ---- Framed map screen ---- */
+.lb-screen {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 14px;
+  border: 1px solid var(--hairline-strong);
+  background: var(--map-ground);
+  overflow: hidden;
+}
+.lb-map {
+  position: absolute;
+  inset: 0;
+}
+.lb-map .maplibregl-canvas {
+  outline: none;
+}
+
+/* Hairline ruler ticks along top + left edges */
+.lb-ruler {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.55;
+}
+.lb-ruler-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--hairline-strong) 0,
+    var(--hairline-strong) 1px,
+    transparent 1px,
+    transparent 16px
+  );
+}
+.lb-ruler-left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 8px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--hairline-strong) 0,
+    var(--hairline-strong) 1px,
+    transparent 1px,
+    transparent 16px
+  );
+}
+
+/* Corner registration marks */
+.lb-regmarks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.lb-reg {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+}
+.lb-reg::before,
+.lb-reg::after {
+  content: "";
+  position: absolute;
+  background: var(--ink-dim);
+}
+.lb-reg::before {
+  width: 12px;
+  height: 1px;
+  top: 5px;
+}
+.lb-reg::after {
+  width: 1px;
+  height: 12px;
+  left: 5px;
+}
+.lb-reg-tl {
+  top: 6px;
+  left: 6px;
+}
+.lb-reg-tr {
+  top: 6px;
+  right: 6px;
+}
+.lb-reg-bl {
+  bottom: 6px;
+  left: 6px;
+}
+.lb-reg-br {
+  bottom: 6px;
+  right: 6px;
+}
+
+/* Compass — bottom-left of the screen */
+.lb-compass {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+}
+.lb-compass-needle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 18px solid var(--signal);
+  transform-origin: 50% 100%;
+  transform: translate(-50%, -100%) rotate(var(--compass-rot, 0deg));
+  transition: transform 200ms ease;
+}
+.lb-compass-n {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: var(--ink-dim);
+}
+
+/* Bearing readout — bottom-right of the screen */
+.lb-bearing {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 5;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
+  border: 1px solid var(--hairline-strong);
+  padding: 6px 10px;
+}
+
+/* MapLibre attribution — small, as in the artifact */
+.lb-map .maplibregl-ctrl-attrib {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+}
+.lb-map .maplibregl-ctrl-attrib a {
+  color: var(--ink-dim);
+}
+
+/* Responsive: stack the control column above the screen on narrow viewports */
+@media (max-width: 720px) {
+  .lb-body {
+    flex-direction: column;
+  }
+  .lb-control {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .lb-readoutpanel {
+    margin-top: 14px;
+  }
+}
