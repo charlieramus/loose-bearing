@@ -1,7 +1,6 @@
-// App entry (V4). Builds the instrument shell and mounts a MapLibre map into the framed
-// screen, centered on the Front Range, in the reference artifact's quiet monochrome. Later
-// stages wire the graph loader, geocoding, pins, the router, the readout panel, and
-// permalinks into the regions the shell exposes. No routing happens yet.
+// App entry (V4). Builds the instrument shell, mounts the MapLibre map over the Front Range in
+// the reference artifact's quiet monochrome, loads V2's graph client-side, and hands the
+// running shell + map to the AppController which owns endpoints, pins, and the query lifecycle.
 
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -18,9 +17,7 @@ import {
 } from "./mapStyle";
 import { ScreenOverlay } from "./overlay";
 import { loadGraph, type LoadedGraph } from "./graphLoader";
-import { NominatimGeocoder, DEBOUNCE_MS } from "./geocode";
-import { resolveQuery, type EndpointRole, type ResolvedEndpoint } from "./resolve";
-import { debounce } from "./debounce";
+import { AppController } from "./controller";
 
 const mount = document.querySelector<HTMLDivElement>("#app");
 if (!mount) throw new Error("missing #app mount");
@@ -47,42 +44,42 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-ri
 // Re-tint on every style load — the initial load and every theme swap both fire this.
 map.on("style.load", () => applyInstrumentTint(map, theme));
 
-// Theme toggle: swap the CARTO style and re-stamp the shell attribute.
+const controller = new AppController(refs, map, theme);
+
+// Theme toggle: swap the CARTO style, re-stamp the shell attribute, and recolor drawn geometry.
 refs.themeButton.addEventListener("click", () => {
   theme = otherTheme(theme);
   applyTheme(refs.root, theme);
+  controller.setTheme(theme);
   map.setStyle(STYLE_URL[theme]);
 });
 
 // ---- Graph load (Stage 2) ------------------------------------------------
 // Load V2's artifact client-side (recorded strategy), showing a LOADING indicator and, on any
-// failure, the blocking GraphLoadError state with a RETRY. The loaded graph + snapping grid are
-// cached for the session (in graphLoader) for the geocoding/routing stages to consume.
+// failure, the blocking GraphLoadError state with a RETRY. On success the controller gets the
+// graph + snapping grid and endpoints become resolvable.
 const overlay = new ScreenOverlay(refs.screen);
 let loaded: LoadedGraph | null = null;
 
-function setStatus(text: string, fault = false): void {
-  refs.headerStatus.textContent = text;
-  refs.headerStatus.dataset.fault = String(fault);
-}
-
 async function initGraph(): Promise<void> {
   overlay.showLoading("LOADING GRAPH", "Front Range street network");
-  setStatus("LOADING…");
+  refs.headerStatus.textContent = "LOADING…";
+  refs.headerStatus.dataset.fault = "false";
   const outcome = await loadGraph();
   if (outcome.ok) {
     loaded = outcome.data;
     const { nodeCount, edgeCount } = outcome.data.meta;
     // Verify hook: counts should match V2 (1,426,625 nodes / 3,631,737 edges).
     console.info(`[loose-bearing] graph loaded: ${nodeCount} nodes / ${edgeCount} edges`);
-    setStatus(
-      `${(nodeCount / 1e6).toFixed(2)}M NODES · ${(edgeCount / 1e6).toFixed(2)}M EDGES`,
-    );
+    refs.graphReadout.textContent = `${(nodeCount / 1e6).toFixed(2)}M N · ${(edgeCount / 1e6).toFixed(2)}M E`;
+    refs.headerStatus.textContent = "READY";
     overlay.hide();
+    controller.setGraph(outcome.data);
   } else {
     loaded = null;
     console.error(`[loose-bearing] GraphLoadError: ${outcome.detail}`);
-    setStatus("GRAPH LOAD ERROR", true);
+    refs.headerStatus.textContent = "GRAPH LOAD ERROR";
+    refs.headerStatus.dataset.fault = "true";
     overlay.showFault("GRAPH LOAD ERROR", outcome.detail, [
       { label: "RETRY", onClick: () => void initGraph() },
     ]);
@@ -90,68 +87,6 @@ async function initGraph(): Promise<void> {
 }
 
 void initGraph();
-
-// ---- Geocode + snap + resolve (Stage 3) ----------------------------------
-// Each text input resolves (debounced) through geocode → snap into a graph node id, showing
-// the correct pre-route failure state (GeocodeMiss / Origin|DestinationOffNetwork) under the
-// field. Resolved endpoints are held here; Stage 4 formalizes the query lifecycle + re-route.
-const geocoder = new NominatimGeocoder();
-const endpoints: { origin: ResolvedEndpoint | null; dest: ResolvedEndpoint | null } = {
-  origin: null,
-  dest: null,
-};
-const inFlight: Record<EndpointRole, AbortController | null> = { origin: null, dest: null };
-
-function setFieldStatus(el: HTMLElement, text: string, state: "" | "ok" | "fault" | "busy"): void {
-  el.textContent = text;
-  el.dataset.state = state;
-}
-
-const FAILURE_LABEL: Record<string, string> = {
-  GeocodeMiss: "NO MATCH",
-  OriginOffNetwork: "OFF NETWORK",
-  DestinationOffNetwork: "OFF NETWORK",
-};
-
-async function resolveField(role: EndpointRole, query: string, statusEl: HTMLElement): Promise<void> {
-  inFlight[role]?.abort();
-  const q = query.trim();
-  if (q.length === 0) {
-    endpoints[role] = null;
-    setFieldStatus(statusEl, "", "");
-    return;
-  }
-  if (!loaded) {
-    setFieldStatus(statusEl, "GRAPH NOT LOADED", "fault");
-    return;
-  }
-  const ctrl = new AbortController();
-  inFlight[role] = ctrl;
-  setFieldStatus(statusEl, "RESOLVING…", "busy");
-  try {
-    const outcome = await resolveQuery(q, role, geocoder, loaded.grid, ctrl.signal);
-    if (ctrl.signal.aborted) return; // superseded by a newer query
-    if (outcome.ok) {
-      endpoints[role] = outcome.endpoint;
-      const short = outcome.endpoint.label.split(",")[0];
-      setFieldStatus(statusEl, `SNAP ${Math.round(outcome.endpoint.snapMeters)}M · ${short}`, "ok");
-    } else {
-      endpoints[role] = null;
-      setFieldStatus(statusEl, FAILURE_LABEL[outcome.state] ?? outcome.state, "fault");
-    }
-  } catch (err) {
-    if (ctrl.signal.aborted) return;
-    endpoints[role] = null;
-    // A transient network/geocoder error is NOT one of the five states — report it plainly.
-    setFieldStatus(statusEl, "GEOCODER ERROR", "fault");
-    console.error("[loose-bearing] geocoder error:", err);
-  }
-}
-
-const debouncedA = debounce(() => void resolveField("origin", refs.inputA.value, refs.statusA), DEBOUNCE_MS);
-const debouncedB = debounce(() => void resolveField("dest", refs.inputB.value, refs.statusB), DEBOUNCE_MS);
-refs.inputA.addEventListener("input", debouncedA);
-refs.inputB.addEventListener("input", debouncedB);
 
 // Expose for later stages / debugging without a global type leak.
 (window as unknown as { __lbMap?: maplibregl.Map; __lbGraph?: () => LoadedGraph | null }).__lbMap =

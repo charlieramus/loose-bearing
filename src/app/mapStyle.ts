@@ -24,6 +24,16 @@ const GROUND: Record<Theme, { ground: string; water: string }> = {
   dark: { ground: "#131316", water: "#1b1c20" },
 };
 
+/**
+ * Signal palette for on-map drawing (route line, direct line, fault). MapLibre paint needs
+ * literal colors, so these mirror the CSS custom properties in styles.css per theme — the ONE
+ * green accent, red for faults only, ink for the neutral direct line.
+ */
+export const PALETTE: Record<Theme, { signal: string; fault: string; ink: string; ground: string }> = {
+  light: { signal: "#16a34a", fault: "#dc2626", ink: "#17181b", ground: "#f3f3f5" },
+  dark: { signal: "#34d399", fault: "#f0595d", ink: "#e9eaee", ground: "#131316" },
+};
+
 /** Front Range default camera — centered on the clip window, zoomed to show the corridor. */
 export const FRONT_RANGE_VIEW = {
   center: [

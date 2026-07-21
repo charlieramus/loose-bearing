@@ -429,6 +429,39 @@ body {
   color: var(--ink-dim);
 }
 
+/* ---- Map pins (A / B) — monochrome instrument squares, no shadow ---- */
+.lb-pin {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ground);
+  background: var(--ink);
+  border: 1.5px solid var(--ground);
+  cursor: grab;
+  user-select: none;
+}
+.lb-pin:active {
+  cursor: grabbing;
+}
+/* B differs by an outline tick, not a second color (one accent = the route only). */
+.lb-pin[data-role="dest"] {
+  color: var(--ink);
+  background: var(--ground);
+  border-color: var(--ink);
+}
+
+/* Trap box — the red dead-end marker on a fault (red = fault only). */
+.lb-trap {
+  width: 16px;
+  height: 16px;
+  background: var(--trap-color, #dc2626);
+  border: 1.5px solid var(--ground);
+}
+
 /* ---- Screen overlay (loading / GraphLoadError) ---- */
 .lb-overlay {
   position: absolute;

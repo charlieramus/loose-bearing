@@ -7,6 +7,7 @@
 
 export type ShellRefs = {
   root: HTMLElement;
+  graphReadout: HTMLElement;
   headerStatus: HTMLElement;
   themeButton: HTMLButtonElement;
   replayButton: HTMLButtonElement;
@@ -49,8 +50,9 @@ export function buildShell(mount: HTMLElement): ShellRefs {
     el("span", "lb-readout", "FRONT RANGE"),
     el("span", "lb-readout lb-readout-dim", "90° RULE"),
   );
+  const graphReadout = el("span", "lb-readout lb-readout-dim", "— NODES");
   const headerStatus = el("span", "lb-readout lb-readout-status", "READY");
-  headerReadouts.append(headerStatus);
+  headerReadouts.append(graphReadout, headerStatus);
 
   const headerButtons = el("div", "lb-header-buttons");
   const themeButton = el("button", "lb-sqbtn", "◐");
@@ -127,6 +129,7 @@ export function buildShell(mount: HTMLElement): ShellRefs {
 
   return {
     root,
+    graphReadout,
     headerStatus,
     themeButton,
     replayButton,
