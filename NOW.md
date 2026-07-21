@@ -9,7 +9,7 @@ The orientation doc. Every later updatelog reads this first. Keep it current.
 | Geo core     | done        | V1  |
 | OSM pipeline | functional  | V2  |
 | Router       | functional  | V3  |
-| Map UI       | not started | V4  |
+| Map UI       | functional  | V4  |
 | The Reveal   | not started | V5  |
 | Gallery/ship | not started | V6  |
 
@@ -39,6 +39,22 @@ GraphLoadError`), with `NoBearingLegalPath` — the feature — cleanly separate
 order across runs, no `Math.random`/`Date.now`); exploration capture bounded to
 `MAX_REJECTED_DETAIL = 50k` for the V5 Reveal. 65 tests green. V4/V5 can rely on identical results
 and exploration order for permalinks/replay.
+
+**Map UI (V4):** the app is real — `src/app/` on MapLibre GL, in the locked instrument style
+(header + left control column + framed map "screen"; concrete/ink; CARTO Positron/Dark-Matter
+monochrome basemap tinted to the ground; light + dark). It statically renders a bearing-constrained
+route: type or click two points → the graph loads CLIENT-SIDE (`graphLoader`, V2 artifact, cached),
+addresses geocode (Nominatim, debounced) and snap to nodes (`snap`/V2 grid), the query lifecycle
+(`queryController`, latest-wins + zero-length) runs V3's `route()`, and the result renders as ONE
+green route line against a thin dotted A→B **direct** reference line (no ghost path, no on-map cone)
+plus the instrument **readout** (detour hero figure + 16-seg meter + DISTANCE/DIRECT/NODES/REFUSED,
+→ DEAD ENDS on a fault) and the compass + BEARING. All five failure states are honest and distinct
+(GraphLoadError, GeocodeMiss, Origin/DestinationOffNetwork, **NO PATH** for NoBearingLegalPath,
+Disconnected). Every route is a deterministic **permalink** (`#a=…&b=…`, clamped to the shared
+Front-Range bbox now lifted to `src/geo/region.ts`). The map render is a **pure function of the
+router result** (`routeGeometry` → `RouteRenderer`) so V5 layers the animated Reveal on the same
+captured exploration without rework. DRY invariant holds and is now guarded by a test: the app never
+recomputes bearings/distances/legality — it imports the V1 geo core + V3 router. 116 tests green.
 
 ## Direction (locked in CEO review — do not relitigate)
 
