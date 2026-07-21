@@ -16,6 +16,8 @@ const ROUTE_SRC = "lb-route-src";
 const ROUTE_LAYER = "lb-route-line";
 const FAULT_SRC = "lb-fault-src";
 const FAULT_LAYER = "lb-fault-line";
+const DIRECT_SRC = "lb-direct-src";
+const DIRECT_LAYER = "lb-direct-line";
 
 type LineFC = FeatureCollection<LineString>;
 
@@ -31,6 +33,7 @@ const EMPTY: LineFC = { type: "FeatureCollection", features: [] };
 
 export class RouteRenderer {
   private plan: RenderPlan = { kind: "none" };
+  private direct: LngLat[] = [];
   private trapMarker: maplibregl.Marker | null = null;
 
   constructor(
@@ -41,10 +44,12 @@ export class RouteRenderer {
     map.on("style.load", () => {
       this.install();
       this.draw();
+      this.drawDirect();
     });
     if (map.isStyleLoaded()) {
       this.install();
       this.draw();
+      this.drawDirect();
     }
   }
 
@@ -56,6 +61,9 @@ export class RouteRenderer {
     if (this.map.getLayer(FAULT_LAYER)) {
       this.map.setPaintProperty(FAULT_LAYER, "line-color", PALETTE[theme].fault);
     }
+    if (this.map.getLayer(DIRECT_LAYER)) {
+      this.map.setPaintProperty(DIRECT_LAYER, "line-color", PALETTE[theme].ink);
+    }
     this.styleTrap();
   }
 
@@ -63,6 +71,12 @@ export class RouteRenderer {
   apply(plan: RenderPlan): void {
     this.plan = plan;
     this.draw();
+  }
+
+  /** The straight A→B crow-flies reference line (Stage 6). Pass null to hide. */
+  setDirect(a: { lat: number; lng: number } | null, b: { lat: number; lng: number } | null): void {
+    this.direct = a && b ? [[a.lng, a.lat], [b.lng, b.lat]] : [];
+    this.drawDirect();
   }
 
   clear(): void {
@@ -90,6 +104,25 @@ export class RouteRenderer {
         paint: { "line-color": PALETTE[this.theme].fault, "line-width": 3, "line-dasharray": [2, 1.5] },
       });
     }
+    if (!this.map.getSource(DIRECT_SRC)) {
+      // Inserted BEFORE the route layer so the green route reads on top of the reference line.
+      this.map.addSource(DIRECT_SRC, { type: "geojson", data: EMPTY });
+      this.map.addLayer(
+        {
+          id: DIRECT_LAYER,
+          type: "line",
+          source: DIRECT_SRC,
+          layout: { "line-cap": "round" },
+          paint: {
+            "line-color": PALETTE[this.theme].ink,
+            "line-width": 1,
+            "line-opacity": 0.5,
+            "line-dasharray": [1, 2], // thin dotted crow-flies reference
+          },
+        },
+        this.map.getLayer(ROUTE_LAYER) ? ROUTE_LAYER : undefined,
+      );
+    }
   }
 
   private draw(): void {
@@ -111,6 +144,12 @@ export class RouteRenderer {
       faultSrc.setData(EMPTY);
       this.setTrap(null);
     }
+  }
+
+  private drawDirect(): void {
+    const src = this.map.getSource(DIRECT_SRC) as maplibregl.GeoJSONSource | undefined;
+    if (!src) return;
+    src.setData(this.direct.length === 2 ? lineFC(this.direct) : EMPTY);
   }
 
   private setTrap(coord: { lat: number; lng: number } | null): void {

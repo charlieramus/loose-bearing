@@ -257,7 +257,7 @@ body {
   min-width: 22px;
 }
 
-/* Readout panel region (filled Stage 6) */
+/* Readout panel region (Stage 6) */
 .lb-readoutpanel {
   margin-top: auto;
   border-top: 1px solid var(--hairline);
@@ -270,6 +270,80 @@ body {
   font-size: 10px;
   letter-spacing: 0.16em;
   color: var(--ink-faint);
+}
+
+.lb-ro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Hero detour figure — light, large, grotesque */
+.lb-ro-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1;
+}
+.lb-ro-figure {
+  font-family: var(--font-grotesque);
+  font-weight: 300;
+  font-size: 54px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.lb-readoutpanel[data-state="ok"] .lb-ro-figure {
+  color: var(--signal);
+}
+.lb-readoutpanel[data-state="fault"] .lb-ro-figure {
+  color: var(--fault);
+}
+.lb-ro-unit {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink-dim);
+}
+
+/* 16-segment detour meter */
+.lb-ro-meter {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 2px;
+  height: 10px;
+}
+.lb-ro-seg {
+  background: var(--hairline);
+}
+.lb-ro-seg[data-on="true"] {
+  background: var(--signal);
+}
+.lb-ro-seg[data-on="true"][data-fault="true"] {
+  background: var(--fault);
+}
+
+/* 4-cell mono grid */
+.lb-ro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--hairline);
+  border-left: 1px solid var(--hairline);
+}
+.lb-ro-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border-right: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+.lb-ro-cell-label {
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+.lb-ro-cell-value {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
 }
 
 /* ---- Framed map screen ---- */

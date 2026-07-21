@@ -1,52 +1,10 @@
 // Shared configuration for the offline OSM → graph pipeline (build/01…06).
-// This file is the single source of truth for WHERE the region is and WHAT counts as a
-// routable street. Retargeting the pipeline to another region is a one-line bbox edit here
-// plus a rerun — nothing downstream is hand-edited.
+// This file is the single source of truth for WHAT counts as a routable street. WHERE the
+// region is now lives in the shared `src/geo/region` module (so the app and the build agree on
+// one bbox); it is re-exported here so the build scripts keep importing it from `./config`.
 
-/** An axis-aligned lat/lng bounding box in decimal degrees (WGS84). */
-export type BBox = {
-  minLat: number;
-  maxLat: number;
-  minLng: number;
-  maxLng: number;
-};
-
-/**
- * The Front Range clip window.
- *
- * The Colorado Front Range is the urban corridor where the Great Plains meet the foothills
- * of the Southern Rockies — Fort Collins in the north down through Loveland, Longmont,
- * Boulder, Denver, and Colorado Springs to Pueblo in the south. We clip a rectangle that
- * covers that corridor and nothing else (no Western Slope, no eastern plains sprawl):
- *
- *  - minLat 38.20  — just south of Pueblo (~38.25 N).
- *  - maxLat 40.65  — just north of Fort Collins (~40.58 N).
- *  - minLng -105.35 — the foothills / mountain seam west of Boulder & Fort Collins, where
- *                     the graded street grid gives way to canyon roads. West of this the
- *                     network is sparse and not "Front Range streets".
- *  - maxLng -104.60 — the plains a short way east of the I-25 corridor (I-25 runs roughly
- *                     -104.8…-105.0 through the metros). Far enough east to include the
- *                     eastern suburbs, not so far as to drag in empty prairie.
- *
- * This same constant is reused in V4 to clamp permalink coordinates into the region, so it
- * is exported cleanly and must stay the authoritative definition of "the map".
- */
-export const FRONT_RANGE_BBOX: BBox = {
-  minLat: 38.2,
-  maxLat: 40.65,
-  minLng: -105.35,
-  maxLng: -104.6,
-};
-
-/** True iff a coordinate falls inside the Front Range clip window (inclusive edges). */
-export function inBBox(lat: number, lng: number, bbox: BBox = FRONT_RANGE_BBOX): boolean {
-  return (
-    lat >= bbox.minLat &&
-    lat <= bbox.maxLat &&
-    lng >= bbox.minLng &&
-    lng <= bbox.maxLng
-  );
-}
+export { FRONT_RANGE_BBOX, inBBox, clampToBBox } from "../src/geo/region";
+export type { BBox } from "../src/geo/region";
 
 /** Source extract (Geofabrik Colorado). Redirects to the current dated snapshot. */
 export const COLORADO_EXTRACT_URL =

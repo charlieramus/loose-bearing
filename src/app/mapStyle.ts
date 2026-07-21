@@ -8,7 +8,7 @@
 // © CARTO — both surface in the attribution control we keep visible.
 
 import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
-import { FRONT_RANGE_BBOX } from "../../build/config";
+import { FRONT_RANGE_BBOX } from "../geo/region";
 
 export type Theme = "light" | "dark";
 

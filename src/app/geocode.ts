@@ -8,7 +8,7 @@
 // results to the Front Range via a bounded viewbox so a bare "Main St" resolves in-region.
 // Attribution (OSM / Nominatim) is exposed for the UI to surface.
 
-import { FRONT_RANGE_BBOX } from "../../build/config";
+import { FRONT_RANGE_BBOX } from "../geo/region";
 
 export type GeocodeHit = { kind: "hit"; lat: number; lng: number; label: string };
 export type GeocodeResult = GeocodeHit | { kind: "miss" };

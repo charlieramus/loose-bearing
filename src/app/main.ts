@@ -18,6 +18,7 @@ import {
 import { ScreenOverlay } from "./overlay";
 import { loadGraph, type LoadedGraph } from "./graphLoader";
 import { AppController } from "./controller";
+import { readPermalink } from "./permalink";
 
 const mount = document.querySelector<HTMLDivElement>("#app");
 if (!mount) throw new Error("missing #app mount");
@@ -75,6 +76,9 @@ async function initGraph(): Promise<void> {
     refs.headerStatus.textContent = "READY";
     overlay.hide();
     controller.setGraph(outcome.data);
+    // If the URL carries a valid (clamped) permalink, reproduce that route deterministically.
+    const pair = readPermalink();
+    if (pair) controller.loadPermalink(pair);
   } else {
     loaded = null;
     console.error(`[loose-bearing] GraphLoadError: ${outcome.detail}`);
