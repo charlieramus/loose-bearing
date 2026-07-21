@@ -8,7 +8,7 @@ The orientation doc. Every later updatelog reads this first. Keep it current.
 | ------------ | ----------- | --- |
 | Geo core     | done        | V1  |
 | OSM pipeline | functional  | V2  |
-| Router       | not started | V3  |
+| Router       | functional  | V3  |
 | Map UI       | not started | V4  |
 | The Reveal   | not started | V5  |
 | Gallery/ship | not started | V6  |
@@ -28,6 +28,17 @@ CLIENT-SIDE, zero backend** (V4 need not re-measure). Validation clean: one domi
 connected component (97.4%), 0.04% dead sinks, grid-shaped bearing histogram. Both `build/data/`
 and `public/graph/` are gitignored — regenerate via `build/` run order. Deferred to later logs:
 the search itself (V3) and loading the artifact into a running app (V4).
+
+**Router (V3):** headless, deterministic, fully tested — `src/router/` (import from `src/router/index.ts`).
+`route(graph, startId, endId)` returns `{ result, exploration }` as a five-state typed `RouteResult`:
+a `Success` (shortest bearing-legal path + length + `detourFactor` + captured `Exploration`) or a
+named `Failure` (`OriginOffNetwork | DestinationOffNetwork | NoBearingLegalPath | Disconnected |
+GraphLoadError`), with `NoBearingLegalPath` — the feature — cleanly separated from ordinary errors
+(only returned when an unconstrained path exists). Constrained A* over the V1 geo core + the one
+`isBearingLegal` predicate; deterministic node-id tie-break (guarded — identical path AND settle
+order across runs, no `Math.random`/`Date.now`); exploration capture bounded to
+`MAX_REJECTED_DETAIL = 50k` for the V5 Reveal. 65 tests green. V4/V5 can rely on identical results
+and exploration order for permalinks/replay.
 
 ## Direction (locked in CEO review — do not relitigate)
 
