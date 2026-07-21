@@ -27,3 +27,9 @@ green; no duplicated angle/distance math.
 - **Custom graph, not OSRM/Valhalla.** We build our own compact directed graph offline (V2)
   rather than depending on a general routing engine.
 - **Web via MapLibre.** The eventual UI (V4+) renders on the web with MapLibre GL.
+- **Design reference (LOCKED).** The app's visual language is the Loose Bearing mockup
+  (reference artifact: https://claude.ai/code/artifact/cb5623a2-70bf-476e-8c60-c05ac6c5a0c4).
+  Teenage-Engineering instrument style: concrete-grey/ink body; monospace readouts with a
+  light large-grotesque hero figure; hairline grid + corner registration marks; ONE green
+  signal color (red = fault only); zero explanatory captions/legends; light + dark. No UI in
+  V1 — but V4+ inherit this exactly. When UI work begins, promote this to a full `DESIGN.md`.
