@@ -4,7 +4,7 @@
 // V1 geo core; nothing here reimplements it (DRY invariant).
 
 import { readFileSync } from "node:fs";
-import { haversineMeters, type LatLng } from "../src/geo/geo";
+import { haversineMeters, initialBearingDeg, type LatLng } from "../src/geo/geo";
 import type { DirectedEdge, Graph, Node } from "../src/graph/types";
 import { FILTERED_JSON } from "./config";
 
@@ -176,6 +176,27 @@ export function buildGraph(f: Filtered, idx: GraphIndex = buildIndex(f)): Graph 
   }
 
   return { nodes, adjacency };
+}
+
+/**
+ * Stage 4 — attach the chord bearing to every directed edge, mutating the graph in place.
+ *
+ * The bearing is `initialBearingDeg(fromNode, toNode)` from the V1 geo core (no new bearing
+ * math), then clamped into [0, 360). `initialBearingDeg` already normalizes to that range; the
+ * explicit clamp is a belt-and-suspenders guard so a downstream change can never leak a
+ * negative or ≥360 value into the serialized artifact.
+ */
+export function attachBearings(graph: Graph): void {
+  const coord = new Map<number, LatLng>();
+  for (const n of graph.nodes) coord.set(n.id, { lat: n.lat, lng: n.lng });
+  for (const list of graph.adjacency.values()) {
+    for (const e of list) {
+      const a = coord.get(e.from)!;
+      const b = coord.get(e.to)!;
+      const deg = initialBearingDeg(a, b);
+      e.bearingDeg = ((deg % 360) + 360) % 360;
+    }
+  }
 }
 
 /** Total number of directed edges in the graph. */
